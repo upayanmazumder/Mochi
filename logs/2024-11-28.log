@@ -1,0 +1,6 @@
+2024-11-28 16:08:19,741 [WARNING]: PyNaCl is not installed, voice will NOT be supported
+2024-11-28 16:08:19,742 [INFO]: [32mStarting the bot...[0m
+2024-11-28 16:08:19,742 [DEBUG]: Using proactor: IocpProactor
+2024-11-28 16:08:19,745 [INFO]: logging in using static token
+2024-11-28 16:08:22,242 [INFO]: Shard ID None has connected to Gateway (Session ID: 25b11e08ad20960f9d43a5d58a66073e).
+2024-11-28 16:08:24,247 [INFO]: [32mLogged in as Mochi [DEV]#2460[0m

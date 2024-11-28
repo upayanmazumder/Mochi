@@ -1,2 +1,13 @@
+aiohappyeyeballs
+aiohttp
+aiosignal
+attrs
 discord.py
+frozenlist
+idna
+multidict
+pip
+propcache
 python-dotenv
+yarl
+colorama
