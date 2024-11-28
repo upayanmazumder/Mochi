@@ -1,0 +1,5 @@
+services:
+  mochi:
+    image: ghcr.io/upayanmazumder/mochi:latest
+    env_file:
+      - mochi.env
