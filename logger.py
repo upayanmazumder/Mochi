@@ -11,10 +11,9 @@ log_dir = "./logs"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-# Define the log file name based on the current date
+# Define the log file name based on the current date in the format YYYY-MM-DD.log
 log_file = os.path.join(log_dir, f"{datetime.now().strftime('%Y-%m-%d')}.log")
 
-# Configure the logging system
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s]: %(message)s",
@@ -24,7 +23,6 @@ logging.basicConfig(
     ]
 )
 
-# Define a custom logger
 logger = logging.getLogger()
 
 # Color definitions for different log levels
@@ -36,10 +34,8 @@ LOG_COLORS = {
     "CRITICAL": Fore.MAGENTA
 }
 
-# Discord webhook URL from environment variables
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
-# Queue for managing log messages
 log_queue = Queue()
 
 def send_to_discord(embed):
@@ -110,21 +106,11 @@ def log(message, level="info"):
         logger.info(f"{Fore.CYAN}Invalid log level: {level}. Defaulting to INFO.{Style.RESET_ALL}")
         logger.info(formatted_message)
 
-    # Add to Discord queue
     if DISCORD_WEBHOOK_URL:
         embed = create_discord_embed(message, level)
         log_queue.put(embed)
 
 # Cleanup function to stop the worker thread
 def cleanup():
-    log_queue.put(None)  # Signal the thread to exit
+    log_queue.put(None)
     discord_thread.join()
-
-# Example usage
-if __name__ == "__main__":
-    log("This is an info message.", "info")
-    log("This is a debug message.", "debug")
-    log("This is a warning!", "warn")
-    log("An error occurred!", "error")
-    log("Critical failure!", "critical")
-    cleanup()
