@@ -11,3 +11,4 @@ propcache
 python-dotenv
 yarl
 colorama
+requests

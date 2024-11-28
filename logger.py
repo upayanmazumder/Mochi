@@ -1,5 +1,8 @@
 import logging
 import os
+import requests
+import threading
+from queue import Queue
 from datetime import datetime
 from colorama import Fore, Style
 
@@ -33,9 +36,55 @@ LOG_COLORS = {
     "CRITICAL": Fore.MAGENTA
 }
 
+# Discord webhook URL from environment variables
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+
+# Queue for managing log messages
+log_queue = Queue()
+
+def send_to_discord(embed):
+    """Sends an embed to Discord using the webhook."""
+    if not DISCORD_WEBHOOK_URL:
+        return
+    try:
+        payload = {"embeds": [embed]}
+        requests.post(DISCORD_WEBHOOK_URL, json=payload)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to send log to Discord: {e}")
+
+def discord_worker():
+    """Worker function to process log messages from the queue."""
+    while True:
+        log_entry = log_queue.get()
+        if log_entry is None:
+            break  # Exit the thread
+        send_to_discord(log_entry)
+        log_queue.task_done()
+
+# Start the Discord logging worker thread
+discord_thread = threading.Thread(target=discord_worker, daemon=True)
+discord_thread.start()
+
+def create_discord_embed(message, level):
+    """Creates a Discord embed for the log message."""
+    color_map = {
+        "DEBUG": 3447003,  # Blue
+        "INFO": 3066993,   # Green
+        "WARNING": 15105570,  # Yellow
+        "ERROR": 15158332,    # Red
+        "CRITICAL": 10181046  # Purple
+    }
+    color = color_map.get(level, 15844367)  # Default to gray
+    return {
+        "title": f"Log - {level}",
+        "description": message,
+        "color": color,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
 def log(message, level="info"):
     """
-    Logs a message to both console and log file.
+    Logs a message to both console, log file, and optionally to Discord.
     
     Args:
         message (str): The message to log.
@@ -60,3 +109,22 @@ def log(message, level="info"):
     else:
         logger.info(f"{Fore.CYAN}Invalid log level: {level}. Defaulting to INFO.{Style.RESET_ALL}")
         logger.info(formatted_message)
+
+    # Add to Discord queue
+    if DISCORD_WEBHOOK_URL:
+        embed = create_discord_embed(message, level)
+        log_queue.put(embed)
+
+# Cleanup function to stop the worker thread
+def cleanup():
+    log_queue.put(None)  # Signal the thread to exit
+    discord_thread.join()
+
+# Example usage
+if __name__ == "__main__":
+    log("This is an info message.", "info")
+    log("This is a debug message.", "debug")
+    log("This is a warning!", "warn")
+    log("An error occurred!", "error")
+    log("Critical failure!", "critical")
+    cleanup()
